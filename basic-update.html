@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html>
+  <!--C:\Users\\Desktop\tesseract.js-5.1.1\tesseract.js-5.1.1\examples\browser-->
+  <!-- 这是对demo的改造-->
+  <head>
+    <script src="../../dist/tesseract.min.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script> &lt;!&ndash; FileSaver.js for saving files &ndash;&gt;-->
+  </head>
+  <body>
+    <input type="file" id="uploader" multiple>
+    <div id="downloadLinks"></div>
+    <script type="module">
+
+      // Initialize Tesseract worker
+      const worker = await Tesseract.createWorker("chi_sim", 1, {
+        corePath: '../../node_modules/tesseract.js-core',
+        workerPath: "../../dist/worker.min.js",
+        logger: function(m){console.log(m);}
+      });
+
+      // Function to recognize text and trigger download
+      const recognize = async function(evt) {
+        const files = evt.target.files;
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+
+          // Recognize text from image
+          const { data: { text } } = await worker.recognize(file);
+
+          // Create a Blob from the recognized text
+          const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+
+          // Create a downloadable link for the .txt file
+          const a = document.createElement("a");
+          const txtFileName = file.name.replace(/\.[^/.]+$/, "") + ".txt"; // Replace file extension with .txt
+          a.href = URL.createObjectURL(blob);
+          a.download = txtFileName;
+          a.innerText = `Download ${txtFileName}`;
+          a.style.display = 'block'; // Each link on a new line
+
+          // Append the link to the page
+          document.getElementById('downloadLinks').appendChild(a);
+
+          console.log(`Text from ${file.name} is ready for download as ${txtFileName}`);
+        }
+      };
+
+      const elm = document.getElementById('uploader');
+      elm.addEventListener('change', recognize);
+
+    </script>
+  </body>
+</html>
