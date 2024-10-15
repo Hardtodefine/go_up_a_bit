@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+  <!-- <script src="./oiuoiuo.js"></script> -->
+</head>
+<body>
+  <div id="app">
+  <p>{{city}}</p>
+  <p><input type="text" :value="city" ></p>
+  <p><input type="text" @input="city=$event.target.value" :value="city">$event事件</p>  
+  <p><input type="text" @input="ganzhi" :value="city">methods事件</p>  
+</div>
+</body>
+<script>
+  var vm = new Vue({
+    el:'#app',
+    data:{
+      city:'北京'
+    },
+    methods:{
+      ganzhi(e){
+        // console.log(e)  // InputEvent对象
+        // e.target:代表触发当前事件的html元素dom对象，具体是input框对象
+        // e.target.value: 随时感知输入框输入的信息
+        // 把随时输入的信息赋予给city，这样city变化，由于“重新渲染”，页面上用到的地方就更新了
+        // 就达成v-model双向绑定的效果了
+        this.city = e.target.value
+      }
+    }
+  })
+</script>
+</html>

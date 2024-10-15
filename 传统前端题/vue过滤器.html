@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        {{city | work | city}}
+        <input @keyup.f666="xxx" />
+    </div>
+    <div id="app2">
+        {{city2 | city}}
+    </div>
+
+
+</body>
+
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+<script>
+    // 全局过滤器
+    Vue.filter('city', function (origin) {
+        return origin + '市'
+    })
+    Vue.config.keyCodes.f666 = 72
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            city: '北京'
+        },
+        methods:{
+            xxx(){
+                debugger
+            }
+        },
+        // 私有过滤器:只能给当前Vue实例使用
+        filters: {
+            work(origin) {
+                return '我工作在' + origin
+            }
+        }
+    });
+    var vm = new Vue({
+        el: '#app2',
+        data: {
+            city2: '上海'
+        }
+    })
+</script>

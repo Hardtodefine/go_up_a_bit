@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <!--创建一个div容器，vue对该容器进行控制，设置要显示的内容-->
+  <div id="app">
+    <h2>{{ msg }}</h2>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+  <script>
+    var vm = new Vue({
+      // 1) 生命周期创建阶段(4个函数),会自动执行
+      beforeCreate(){
+        // Vue实例已经创建完毕，但是相关的成员都没有，el、methods、data等等都没有
+        console.group('--------beforeCreate发生调用--------')
+        console.log('%c%s','color:red','el现在的样子：'+this.$el)     // undefined
+        console.log('%c%s','color:red','data现在的样子：'+this.$data) // undefined
+        console.log('%c%s','color:red','getDate现在的样子：'+this.getDate)  // undefined
+      },
+      created(){
+        // 该阶段是一个【重要】阶段，此时data 和 methods已经准备好了，但是还没有去找div容器
+        // 此阶段可以用于页面首屏数据获取操作，获取回来的数据存储给data的某个成员即可
+        console.group('--------created发生调用--------')
+        console.log('%c%s','color:red','el现在的样子：'+this.$el)      // undefined
+        console.log('%c%s','color:red','data现在的样子：'+this.$data)  // 实体
+        console.log('%c%s','color:red','getDate现在的样子：'+this.getDate)  // 实体
+      },
+      beforeMount(){
+        // 此阶段完成了Vue实例对象 与 div容器联系的过程(本质是div容器已经被Vue实例获取到了)
+        // 但是div容器的内容还是没有编译前的原生内容
+        console.group('--------beforeMount发生调用--------')
+        console.log('%c%s','color:red','el现在的样子：'+this.$el)      // 实体
+        console.log(document.getElementsByTagName('h2')[0])  // 
+      },
+      mounted(){
+        // 此阶段 Vue实例已经完成了div容器的内容的编译，并且编译好的内容也渲染给div容器了
+        console.group('--------mounted发生调用--------')
+        console.log('%c%s','color:red','el现在的样子：'+this.$el)      // 实体
+        console.log(document.getElementsByTagName('h2')[0])  // 容器编译【后】实体内容
+      },
+
+      // 2) 生命周期运行阶段(2个函数),data数据变化后才会执行
+      beforeUpdate() {
+        console.group('---------beforeUpdate调用--------')
+        console.log(
+            '%c%s',
+            'color:red',
+            'h2数据更新【前】的效果：' + document.querySelector('h2').innerHTML
+        )
+      },
+      updated() {
+        console.group('---------updated调用--------')
+        console.log(
+          '%c%s',
+          'color:red',
+          'h2数据更新【后】的效果：' + document.querySelector('h2').innerHTML
+        )
+      },
+      
+      // 3) 生命周期销毁阶段(2个函数),只有vm调用$destroy()方法后才执行
+      beforeDestroy() {
+        console.group('---------beforeDestroy调用--------')
+        console.log('%c%s', 'color:red', 'el现在的样子：' + this.$el)
+      },
+      destroyed() {
+        console.group('---------destroyed调用--------')
+        console.log('%c%s', 'color:red', 'el现在的样子：' + this.$el)
+      },
+      
+      el: '#app',
+      data: {
+        msg: '生命周期学习篇'
+      },
+      methods: {
+        getDate(){
+          console.log('Sunday')
+        }
+      }
+    })
+  </script>
+</body>
+</html>
