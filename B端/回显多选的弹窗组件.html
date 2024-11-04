@@ -1,0 +1,173 @@
+<template>
+    <el-dialog width="85%" :visible="visible" :title="'选择题库'" :close-on-click-modal="false" @update:visible="handleClose">
+      <el-table ref="table" :data="tableData" border row-key="sysNo" @select-all="selectionAllChange"
+        @select="tableSelect">
+        <el-table-column type="selection" width="40"></el-table-column>
+        <el-table-column label="单选题" prop="singleCount" min-width="200px" show-overflow-tooltip></el-table-column>
+        <el-table-column label="多选题" prop="multiCount" min-width="100px" show-overflow-tooltip></el-table-column>
+        <el-table-column label="判断题" prop="judgeCount" min-width="200px" show-overflow-tooltip></el-table-column>
+      </el-table>
+    </el-dialog>
+  </template>
+  <script>
+  import cloneDeep from 'lodash.clonedeep'
+  
+  
+  let tableSelectionInfo = {}
+  let currentSelectionList = []
+  export default {
+    props: {
+      defaultSelections: Array,
+      visible: { default: false },
+    },
+    components: {},
+    data() {
+      return {
+        tableData: [],
+        searchForm: {
+          name: null,
+          pageNum: 1,
+          pageSize: 10,
+        },
+        total: 0,
+      }
+    },
+    watch: {
+      visible: {
+        handler(newVal) {
+          if (newVal) {
+            this.resetField()
+            this.writeSelected()
+            this.loadData()
+          }
+        },
+        immediate: true // 立即执行一次
+      }
+    },
+    created() { },
+    mounted() {
+    },
+    methods: {
+      writeSelected() {
+        if (Array.isArray(this.defaultSelections) && this.defaultSelections.length>0) {
+          tableSelectionInfo = {}
+          this.defaultSelections.forEach((item) => {
+            tableSelectionInfo[item.sysNo] = item
+          })
+        }
+      },
+      resetField() {
+        this.tableData = []
+        currentSelectionList = []
+        this.searchForm = {
+          name: null,
+          pageNum: 1,
+          pageSize: 10,
+        }
+        this.loadData()
+      },
+      loadData(notClearSelected) {
+        if (!this.visible) {
+          return
+        }
+        requestapi
+          .queryBankInPaper(this.searchForm)
+          .then((result) => {
+  
+            const formatterList = result.list.map((item) => {
+              // item.sysNo = item.classificationCoding + item.serialNumber
+              return item
+            })
+            this.tableData = formatterList
+            this.total = result.total
+            if (true) {
+              // 设置勾选
+              this.$nextTick(() => {
+                const selections = Object.keys(tableSelectionInfo)
+  
+                if (notClearSelected) {
+                  currentSelectionList = []
+                  
+                } 
+                // 遍历 formatterArray 并勾选匹配的行
+                // 翻页时不清除
+                formatterList.forEach((item) => {
+                  if (selections.includes(item.sysNo)) {
+                    this.$refs.table.toggleRowSelection(item, true);
+                    currentSelectionList.push(item)
+                  }
+                });
+  
+  
+              })
+            }
+          })
+          .catch((err) => { })
+      },
+      selectionAllChange(selection) {
+        const currentPageData = this.tableData.map(item => item.sysNo);
+        const newSelection = selection.filter(item => currentPageData.includes(item.sysNo));
+  
+        if (newSelection.length) {
+          this.tableData.forEach(item => {
+            const key = item.sysNo;
+  
+            if (!currentSelectionList.some(selectionItem => selectionItem.sysNo === key)) {
+              currentSelectionList.push(item);
+              tableSelectionInfo[key] = item;
+            }
+          });
+        } else {
+          this.tableData.forEach(item => {
+            const sysNo = item.sysNo;
+            currentSelectionList = currentSelectionList.filter(selectionItem => {
+              if (selectionItem.sysNo === sysNo) {
+                Reflect.deleteProperty(tableSelectionInfo, sysNo);
+                return false;
+              }
+              return true;
+            });
+          });
+        }
+  
+      },
+      // 单选方法
+      tableSelect(selection, row) {
+  
+        // 只处理当前页面的数据
+        const currentPageData = this.tableData.map(item => item.sysNo);
+  
+        const codeList = selection.map((item) => item.sysNo);
+        const type = codeList.includes(row.sysNo) ? 'add' : 'delete';
+  
+        if (type === 'add' && currentPageData.includes(row.sysNo)) {
+          const key = row.sysNo;
+          tableSelectionInfo[key] = row;
+  
+          // 更新 currentSelectionList，添加新的选中项
+          if (!currentSelectionList.some(item => item.sysNo === row.sysNo)) {
+            currentSelectionList.push(cloneDeep(row));
+          }
+        } else if (type === 'delete' && currentPageData.includes(row.sysNo)) {
+          const key = row.sysNo;
+          Reflect.deleteProperty(tableSelectionInfo, key);
+  
+          // 从 currentSelectionList 中移除当前行
+          currentSelectionList = currentSelectionList.filter(item => item.sysNo !== row.sysNo);
+        }
+      },
+      // 获取已勾选的表格项
+      getSelection() {
+        return Object.values(tableSelectionInfo)
+      },
+  
+      confirm() {
+        const resultArray = Object.values(tableSelectionInfo).map(item => {
+          item.choiceCount = 0;
+          return item;
+        });
+        this.$emit('confirm', resultArray)
+      },
+    },
+  }
+  </script>

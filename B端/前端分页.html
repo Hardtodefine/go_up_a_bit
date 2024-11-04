@@ -1,0 +1,86 @@
+<el-table :data="questionInfoList.data" style="width: 100%">
+    <el-table-column label="序号" width="50" align="center" type="index"></el-table-column>
+    <el-table-column prop="question" label="题目"></el-table-column>
+    <el-table-column v-if="type !== 'detail'" label="操作" fixed="right" width="120px">
+        <template slot-scope="scope">
+            <el-button type="text" @click="removeQuestionInfoList(scope.row)">删除</el-button>
+        </template>
+    </el-table-column>
+</el-table>
+<div v-if="questionInfoList.total" style="text-align: right">
+    <el-pagination :total="questionInfoList.total" :current-page="questionInfoList.pageNum"
+        :page-size="questionInfoList.pageSize" background layout="prev, pager, next, sizes, total"
+        @current-change="handleCurrentChange" @size-change="handleSizeChange"></el-pagination>
+</div>
+<script>
+    export default {
+        data() {
+            return{
+                questionInfoList: {
+                    allData: [],
+                    data: [],
+                    pageNum: 1,
+                    total: 0,
+                    pageSize: 10,
+                },
+            }
+            
+        },
+        created() {
+            if (this.type !== 'add' && this.sysNo) {
+                onlinetestApi.getPaperDetail(this.sysNo).then(res => {
+                    this.formData = { ...this.formData, ...res }
+                    if (this.formData.examinationType==0) {
+                        this.updateTableData()
+                    }
+                })
+            }
+
+        },
+        methods:{
+            // 前端试题分页
+        handleCurrentChange(pageNum) {
+            this.questionInfoList.pageNum = pageNum;
+            this.updateTableData();
+        },
+
+        handleSizeChange(pageSize) {
+            this.questionInfoList.pageSize = pageSize;
+            this.questionInfoList.pageNum = 1; // 切换每页显示条数时，重置到第一页
+            this.updateTableData();
+        },
+
+        // 更新表格数据
+        updateTableData() {
+            this.questionInfoList.total = this.formData.questionInfoList.length;
+            // 更新题目总数
+            if (this.formData.questionNum!==this.formData.questionInfoList.length) {
+                this.formData.questionNum = this.formData.questionInfoList.length
+            }
+            const start = (this.questionInfoList.pageNum - 1) * this.questionInfoList.pageSize;
+            const end = start + this.questionInfoList.pageSize;
+            
+            this.questionInfoList.data = this.formData.questionInfoList.slice(start, end);
+            
+        },
+        removeQuestionInfoList(row) {
+            // 删除提交的元数据并且更新列表
+            if (this.formData.questionInfoList && Array.isArray(this.formData.questionInfoList)) {
+                const index = this.formData.questionInfoList.findIndex(item => {
+                    return item === row;
+                });
+
+                if (index !== -1) {
+                    this.formData.questionInfoList.splice(index, 1);
+                    this.$message.success('删除成功');
+                } else {
+                    this.$message.warning('未找到该表格项');
+                }
+                this.questionInfoList.pageNum = 1//删除完回第一页
+                this.updateTableData()
+            } else {
+                this.$message.error('键不存在或不是数组');
+            }
+        },
+        },
+    }

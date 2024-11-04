@@ -1,0 +1,62 @@
+<template>
+    <el-table :data="List" show-summary :summary-method="getSummariesWithExtras('总价款')"
+        :header-cell-style="headerCellStyle">
+</template>
+<script>
+    import BigNumber from 'bignumber.js'
+    export default {
+        methods: {
+            // 合并表格头
+            headerCellStyle({ row, column, rowIndex, columnIndex }) {
+                // 第一步：隐去使其消失
+                if (column.label == "抵入情况级联") {
+                    return { display: "none" };
+                }
+                // 第二步， 由于1、2列没有了，后续列就会贴上来（后续列往左错位问题）
+                if (column.label == "抵入情况") {
+                    this.$nextTick(() => {
+                        document.querySelector(`.${column.id}`).setAttribute("colspan", "2");
+                    });
+                }
+            },
+            getSummariesWithExtras(extraParams) {
+                return (columns) => {
+                    return this.getSummaries(columns, extraParams);
+                };
+            },
+            getSummaries({ columns, data }, extraParams) {
+
+                const summaries = [];
+                columns.forEach((column, index, array) => {
+
+                    if (index === array.length - 2) {
+                        const values = data.map(item => new BigNumber(item[column.property]));
+                        summaries[index] = values.reduce((prev, curr) => {
+                            if (!curr.isNaN()) {
+                                return prev.plus(curr);
+                            } else {
+                                return prev;
+                            }
+                        }, new BigNumber(0));  // 初始化为 BigNumber(0)
+
+                        // 将结果转换为字符串形式以避免精度问题
+                        summaries[index] = summaries[index].toString();
+
+                        // 处理额外参数
+                        if (extraParams === '总价款'||column.property === 'special') {
+                            if (summaries[index] !== '0') {
+                                this.total = summaries[index];
+                            }
+                        }
+                    } else if (index === 0) {
+                        summaries[index] = extraParams;
+                    } else {
+                        summaries[index] = '';
+                    }
+                });
+                return summaries;
+            },
+
+        }
+    }
+</script>
