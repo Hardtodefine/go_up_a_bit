@@ -70,3 +70,12 @@ style attribute {
 4. **自定义单位和背景裁剪**：
    - `--vh`、`--vw` 和 `--vmin` 是视口单位的CSS变量。
    - `-webkit-background-clip: text` 和 `-webkit-text-fill-color: transparent` 用于将背景裁剪为文字形状并设置文字填充颜色。
+
+水平垂直居中的方法
+
+- flex居中
+- margin-left=-150px(固定宽高300px)
+- position:absolute;translate-50%
+- position:absolute;0000,margin:auto
+- 父:table;子:table-cell;vertical-align:middle;text-align:center;
+- 父:grid;子justify-self:center,align-self:center
