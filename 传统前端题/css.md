@@ -76,6 +76,6 @@ style attribute {
 - flex居中
 - margin-left=-150px(固定宽高300px)
 - position:absolute;translate-50%
-- position:absolute;0000,margin:auto
+- position:absolute;0000,margin:auto(需要父元素大小固定)
 - 父:table;子:table-cell;vertical-align:middle;text-align:center;
 - 父:grid;子justify-self:center,align-self:center
